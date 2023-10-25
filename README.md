@@ -1,6 +1,7 @@
 # primer_app_flutter
 
-A new Flutter project.
+Este es el código de la primera App Flutter
+Autor: Raymundo Juárez García
 
 ## Getting Started
 
