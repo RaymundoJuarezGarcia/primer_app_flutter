@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
-  var favorito = <WordPair>[];
+  var favoritos = <WordPair>[];
 
   void getSiguiente() {
     current = WordPair.random();
@@ -37,10 +37,10 @@ class MyAppState extends ChangeNotifier {
   }
 
   void toggleFavoritos() {
-    if (favorito.contains(current)) {
-      favorito.remove(current);
+    if (favoritos.contains(current)) {
+      favoritos.remove(current);
     } else {
-      favorito.add(current);
+      favoritos.add(current);
     }
     notifyListeners();
   }
@@ -61,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget page;
     switch(selectedIndex) {
       case 0: page = GeneratorPage(); break;
-      case 1: page = Placeholder(); break;
+      case 1: page = FavoritosPage(); break;
       default:
       throw UnimplementedError('No hay un widget para: $selectedIndex');
     }
@@ -137,7 +137,7 @@ class GeneratorPage extends StatelessWidget {
     var appState = context.watch<MyAppState>();
     var idea = appState.current;
     IconData icon;
-    if (appState.favorito.contains(idea)) {
+    if (appState.favoritos.contains(idea)) {
       icon = Icons.favorite;
     } else {
       icon = Icons.favorite_outline;
@@ -167,3 +167,30 @@ class GeneratorPage extends StatelessWidget {
     );
   }
 }
+
+class FavoritosPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
+    if(appState.favoritos.isEmpty) {
+      return Center(
+        child: Text("Aun no hay favoritos"),
+      );
+    }
+    return ListView(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Text('Se han elegido' '${appState.favoritos.length} favoritos'),
+        ),
+        for (var name in appState.favoritos)
+        ListTile(
+          leading: Icon(Icons.favorite),
+          title: Text(name.asLowerCase),
+        ),
+      ],
+    );
+  }
+}
+
