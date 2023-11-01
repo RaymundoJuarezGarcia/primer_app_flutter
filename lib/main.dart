@@ -1,5 +1,8 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 void main() {
   runApp(const MyApp());
@@ -55,37 +58,48 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          SafeArea(
-            child: NavigationRail(
-              extended: false,
-              destinations: [
-                NavigationRailDestination(
-                  icon: Icon(Icons.home),
-                  label: Text("Inicio")),
-                NavigationRailDestination(
-                  icon: Icon(Icons.favorite),
-                  label: Text("Favorito")),
-              ],
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (value) {
-                print("Selection: $value");
-                setState((){
-                  selectedIndex = value;
-                });
-              },
-            )
-          ),
-          Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: GeneratorPage(),
-            )
-          ),
-        ]
-      )
+    Widget page;
+    switch(selectedIndex) {
+      case 0: page = GeneratorPage(); break;
+      case 1: page = Placeholder(); break;
+      default:
+      throw UnimplementedError('No hay un widget para: $selectedIndex');
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          body: Row(
+            children: [
+              SafeArea(
+                child: NavigationRail(
+                  extended: constraints.maxWidth >= 600,
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.home),
+                      label: Text("Inicio")),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.favorite),
+                      label: Text("Favorito")),
+                  ],
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (value) {
+                    print("Selection: $value");
+                    setState((){
+                      selectedIndex = value;
+                    });
+                  },
+                )
+              ),
+              Expanded(
+                child: Container(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: page,
+                ),
+              ),
+            ]
+          )
+        );
+      }
     );
   }
 }
