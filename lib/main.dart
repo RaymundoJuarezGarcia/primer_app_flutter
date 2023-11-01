@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
         home: const MyHomePage(),
@@ -30,17 +30,24 @@ class MyApp extends StatelessWidget {
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
   var favoritos = <WordPair>[];
+  var historial = <WordPair>[];
+
+  GlobalKey? historialListKey;
 
   void getSiguiente() {
+    historial.insert(0, current);
+    var animatedList = historialListKey?.currentState as AnimatedGridState?;
+    animatedList?.insertItem(0);
     current = WordPair.random();
     notifyListeners();
   }
 
-  void toggleFavoritos() {
-    if (favoritos.contains(current)) {
-      favoritos.remove(current);
+  void toggleFavorito(WordPair? idea) {
+    idea = idea?? current;
+    if (favoritos.contains(idea)) {
+      favoritos.remove(idea);
     } else {
-      favoritos.add(current);
+      favoritos.add(idea);
     }
     notifyListeners();
   }
@@ -146,13 +153,18 @@ class GeneratorPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Expanded(
+            flex: 3,
+            child: HistorialListView(),
+          ),
+          SizedBox(height: 20),
           BigCard(idea: appState.current),
           SizedBox(height: 20,),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               ElevatedButton.icon(
-                onPressed: () {appState.toggleFavoritos();},
+                onPressed: () {appState.toggleFavorito(idea);},
                 icon: Icon(icon),
                 label: Text("Me Gusta")),
                 SizedBox(width: 15,),
@@ -162,6 +174,7 @@ class GeneratorPage extends StatelessWidget {
               ),
             ],
           ),
+          Spacer(flex: 2),
         ],
       ),
     );
@@ -194,3 +207,56 @@ class FavoritosPage extends StatelessWidget {
   }
 }
 
+class HistorialListView extends StatefulWidget {
+  const HistorialListView({Key? key}): super(key: key);
+
+  @override
+  State<HistorialListView> createState() => _HistorialListViewState();
+}
+
+class _HistorialListViewState extends State<HistorialListView> {
+  final _key = GlobalKey();
+
+static const Gradient _maskingGradient = LinearGradient(
+  colors: [Colors.transparent, Colors.black],
+  stops: [0, 0 , 0, 5],
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    appState.historialListKey = _key;
+    return ShaderMask(
+      shaderCallback: (bounds) => _maskingGradient.createShader(bounds),
+      blendMode: BlendMode.dstIn,
+      child: AnimatedList(
+        key: _key,
+        reverse: true,
+        padding: EdgeInsets.only(top: 100),
+        initialItemCount: appState.historial.length,
+        itemBuilder: (context, index, animation) {
+          final idea = appState.historial[index];
+          return SizeTransition(
+            sizeFactor: animation,
+            child: Center(
+              child: TextButton.icon(
+                onPressed: (){
+                  appState.toggleFavorito(idea);
+                },
+                icon: appState.favoritos.contains(idea)
+                ? Icon(Icons.favorite, size: 12,)
+                : SizedBox(),
+                label: Text(
+                  idea.asLowerCase,
+                  semanticsLabel: idea.asPascalCase,
+                ),
+              ),
+            ),
+          );
+        }
+      ),
+    );
+  }
+}
